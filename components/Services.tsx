@@ -10,17 +10,6 @@ import {
 import { X, CheckCircle2, Sparkles } from 'lucide-react';
 import { ServiceCardProps } from '../types';
 
-type ModalItem =
-  | string
-  | {
-      kind: 'group';
-      title: string;
-      items: string[];
-      highlight?: boolean;
-      badge?: string;
-      cta?: string;
-    };
-
 interface AnimatedServiceCardProps extends ServiceCardProps {
   progress: MotionValue<number>;
   range: [number, number];
@@ -131,7 +120,6 @@ const Services: React.FC = () => {
 
   // Sticky wrapper height tuning
   const [wrapperHeightPx, setWrapperHeightPx] = useState<number | null>(null);
-  const [navOffsetPx, setNavOffsetPx] = useState(110);
 
   const [selectedService, setSelectedService] = useState<number | null>(null);
 
@@ -168,10 +156,11 @@ const Services: React.FC = () => {
   const mCard3Range = useMemo(() => card3Range, []);
 
   // Slide-in from sides (desktop)
-  const card1X = useTransform(smoothProgress, mCard1Range, ['-105vw', '0vw']);
-  const card2X = useTransform(smoothProgress, mCard2Range, ['105vw', '0vw']);
-  const card3X = useTransform(smoothProgress, mCard3Range, ['-105vw', '0vw']);
+  const mCard1X = useTransform(smoothProgress, mCard1Range, ['-105vw', '0vw']);
+  const mCard2X = useTransform(smoothProgress, mCard2Range, ['105vw', '0vw']);
+  const mCard3X = useTransform(smoothProgress, mCard3Range, ['-105vw', '0vw']);
 
+  // Cards content
   const serviceCards: ServiceCardProps[] = useMemo(
     () => [
       {
@@ -199,101 +188,49 @@ const Services: React.FC = () => {
     []
   );
 
-  const serviceData: { id: number; title: string; content: ModalItem[] }[] =
-    useMemo(
-      () => [
-        {
-          id: 1,
-          title: 'Property Management & Maintenance',
-          content: [
-            'Weekly Property Inspections & Reports',
-            'Preventive Maintenance & Handyman Services',
-            'Vendor Management (plumbing, electrical, painting, snow removal, landscaping, etc.)',
-            'Asistencia a Property Managers, Boards y HOAs',
-            'Servicios para edificios comerciales',
-          ],
-        },
-        {
-          id: 2,
-          title: 'Cleaning Services',
-          content: [
-            'Residential Cleaning (Checkout Clean, Move-Out Clean, Deep Clean)',
-            'Commercial Cleaning (Restaurants, Offices, Common Areas)',
-            {
-              kind: 'group',
-              title: 'Specialized Cleaning Services',
-              badge: 'High-Impact',
-              highlight: true,
-              cta: 'Ask about specialized packages — a major part of our work.',
-              items: [
-                'Window & Gutter Cleaning',
-                'Carpet & Upholstery Steam Cleaning',
-                'Exterior Pressure Washing',
-              ],
-            },
-          ],
-        },
-        {
-          id: 3,
-          title: 'Concierge Services',
-          content: [
-            'Guest support during stays',
-            'Transportation coordination',
-            'Restaurant & event reservations',
-            'Ski passes, rentals & excursions',
-            'Babysitting & Pet Sitting coordination',
-          ],
-        },
-      ],
-      []
-    );
+  const serviceData = useMemo(
+    () => [
+      {
+        id: 1,
+        title: 'Property Management & Maintenance',
+        content: [
+          'Residential Property Management (Second Home Owners)',
+          'Short-Term Rental Property Management (inspecciones pre y post estadía)',
+          'Custodial Services / Property Maintenance para edificios comerciales',
+          'Asistencia a Property Managers, Boards y HOAs',
+          'Weekly Property Inspections & Reports',
+          'Preventive Maintenance & Handyman Services',
+          'Vendor Management (plumbing, electrical, painting, snow removal, landscaping, etc.)',
+        ],
+      },
+      {
+        id: 2,
+        title: 'Cleaning Services',
+        content: [
+          'Residential Cleaning (Checkout Clean, Move-Out Clean, Deep Clean)',
+          'Commercial Cleaning (Restaurants, Offices, Common Areas)',
+          'Specialized Cleaning Services:',
+          'Window & Gutter Cleaning',
+          'Carpet & Upholstery Steam Cleaning',
+          'Exterior Pressure Washing',
+        ],
+      },
+      {
+        id: 3,
+        title: 'Concierge Services',
+        content: [
+          'Guest support during stays',
+          'Transportation coordination',
+          'Restaurant & event reservations',
+          'Ski passes, rentals & excursions',
+          'Babysitting & Pet Sitting coordination',
+        ],
+      },
+    ],
+    []
+  );
 
-  // Open modal
-  const openModal = (id: number) => setSelectedService(id);
   const closeModal = () => setSelectedService(null);
-
-  // Dynamic wrapper height (keeps sticky area stable across desktop sizes)
-  useEffect(() => {
-    const computeWrapperHeight = () => {
-      // keep existing behavior
-      setWrapperHeightPx(null);
-    };
-    computeWrapperHeight();
-    window.addEventListener('resize', computeWrapperHeight);
-    return () => window.removeEventListener('resize', computeWrapperHeight);
-  }, []);
-
-  // Compute navbar offset for modal top padding (avoids overlap)
-  useEffect(() => {
-    const computeNavOffset = () => {
-      const nav = document.querySelector('nav');
-      if (!nav) return;
-      const rect = nav.getBoundingClientRect();
-      // Add a little breathing space
-      setNavOffsetPx(Math.round(rect.bottom + 14));
-    };
-
-    computeNavOffset();
-    window.addEventListener('resize', computeNavOffset);
-    window.addEventListener('load', computeNavOffset);
-
-    let ro: ResizeObserver | null = null;
-    if ('ResizeObserver' in window) {
-      const nav = document.querySelector('nav');
-      if (nav) {
-        ro = new ResizeObserver(() => computeNavOffset());
-        try {
-          ro.observe(nav);
-        } catch {}
-      }
-    }
-
-    return () => {
-      window.removeEventListener('resize', computeNavOffset);
-      window.removeEventListener('load', computeNavOffset);
-      if (ro) ro.disconnect();
-    };
-  }, []);
 
   return (
     <section id="services" className="bg-cream scroll-mt-28 md:scroll-mt-36">
@@ -349,8 +286,8 @@ const Services: React.FC = () => {
                       {...serviceCards[0]}
                       progress={smoothProgress}
                       range={mCard1Range}
-                      onExplore={() => openModal(1)}
-                      style={{ x: card1X }}
+                      onExplore={() => setSelectedService(1)}
+                      style={{ x: mCard1X }}
                     />
                   </div>
 
@@ -359,8 +296,8 @@ const Services: React.FC = () => {
                       {...serviceCards[1]}
                       progress={smoothProgress}
                       range={mCard2Range}
-                      onExplore={() => openModal(2)}
-                      style={{ x: card2X }}
+                      onExplore={() => setSelectedService(2)}
+                      style={{ x: mCard2X }}
                     />
                   </div>
 
@@ -369,8 +306,8 @@ const Services: React.FC = () => {
                       {...serviceCards[2]}
                       progress={smoothProgress}
                       range={mCard3Range}
-                      onExplore={() => openModal(3)}
-                      style={{ x: card3X }}
+                      onExplore={() => setSelectedService(3)}
+                      style={{ x: mCard3X }}
                     />
                   </div>
                 </div>
@@ -382,7 +319,7 @@ const Services: React.FC = () => {
                       {...serviceCards[0]}
                       progress={smoothProgress}
                       range={[0.1, 0.22]}
-                      onExplore={() => openModal(1)}
+                      onExplore={() => setSelectedService(1)}
                     />
                   </div>
                   <div className="w-full">
@@ -390,7 +327,7 @@ const Services: React.FC = () => {
                       {...serviceCards[1]}
                       progress={smoothProgress}
                       range={[0.25, 0.42]}
-                      onExplore={() => openModal(2)}
+                      onExplore={() => setSelectedService(2)}
                     />
                   </div>
                   <div className="w-full">
@@ -398,7 +335,7 @@ const Services: React.FC = () => {
                       {...serviceCards[2]}
                       progress={smoothProgress}
                       range={[0.45, 0.62]}
-                      onExplore={() => openModal(3)}
+                      onExplore={() => setSelectedService(3)}
                     />
                   </div>
                 </div>
@@ -425,125 +362,58 @@ const Services: React.FC = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.98 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-0 z-[201] flex justify-center"
-              style={{
-                paddingTop: `${navOffsetPx}px`,
-                paddingLeft: '16px',
-                paddingRight: '16px',
-                paddingBottom: '18px',
-              }}
+              className="fixed inset-0 z-[201] flex items-start justify-center px-4 pt-24 md:pt-28 pb-6"
               onClick={closeModal}
             >
-              <div onClick={(e) => e.stopPropagation()} className="w-full flex justify-center">
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-2xl bg-white rounded-[2.25rem] shadow-2xl overflow-hidden"
+              >
                 <div
-                  className="w-full bg-white rounded-[2.25rem] shadow-2xl overflow-hidden"
-                  style={{
-                    maxWidth: 'min(720px, 92vw)',
-                    maxHeight: `calc(100vh - ${navOffsetPx}px - 22px)`,
-                    overflowY: 'auto',
-                  }}
+                  className="relative"
+                  style={{ padding: 'clamp(18px, 2.1vw, 36px)' }}
                 >
-                  <div className="relative" style={{ padding: 'clamp(18px, 2.1vw, 36px)' }}>
-                    <button
-                      onClick={closeModal}
-                      className="absolute top-5 right-5 p-2 rounded-full bg-cream hover:bg-dark hover:text-white transition-all duration-300"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                  <button
+                    onClick={closeModal}
+                    className="absolute top-5 right-5 p-2 rounded-full bg-cream hover:bg-dark hover:text-white transition-all duration-300"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
 
-                    <div className="inline-block px-4 py-1.5 rounded-full bg-accent/10 text-[10px] text-accent font-black uppercase tracking-[0.2em] mb-4">
-                      Service Details
-                    </div>
+                  <div className="inline-block px-4 py-1.5 rounded-full bg-accent/10 text-[10px] text-accent font-black uppercase tracking-[0.2em] mb-4">
+                    Service Details
+                  </div>
 
-                    <h2
-                      className="text-primary mb-8 leading-tight"
-                      style={{
-                        fontSize: 'clamp(1.6rem, 2.1vw, 2.4rem)',
-                        fontWeight: 700,
-                        letterSpacing: '-0.02em',
-                      }}
-                    >
-                      {serviceData.find((s) => s.id === selectedService)?.title}
-                    </h2>
+                  <h2
+                    className="text-primary mb-8 leading-tight"
+                    style={{
+                      fontSize: 'clamp(1.6rem, 2.1vw, 2.4rem)',
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    {serviceData.find((s) => s.id === selectedService)?.title}
+                  </h2>
 
-                    <div className="space-y-4">
-                      {serviceData
-                        .find((s) => s.id === selectedService)
-                        ?.content.map((item, idx) => {
-                          const isGroup = typeof item !== 'string';
-                          if (isGroup) {
-                            const group = item as Exclude<ModalItem, string>;
-                            return (
-                              <motion.div
-                                initial={{ opacity: 0, x: -8 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{
-                                  delay: 0.06 + idx * 0.04,
-                                  duration: 0.22,
-                                  ease: 'easeOut',
-                                }}
-                                key={idx}
-                                className={`rounded-2xl p-5 md:p-6 ring-1 ${
-                                  group.highlight
-                                    ? 'bg-accent/10 ring-accent/25'
-                                    : 'bg-cream ring-dark/10'
-                                }`}
-                              >
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex items-start gap-3">
-                                    <div className="mt-0.5 flex-shrink-0">
-                                      <Sparkles className="w-5 h-5 text-accent" />
-                                    </div>
-                                    <div>
-                                      <p
-                                        className="text-dark font-extrabold"
-                                        style={{
-                                          fontSize: 'clamp(0.98rem, 1.15vw, 1.08rem)',
-                                          lineHeight: 1.35,
-                                        }}
-                                      >
-                                        {group.title}
-                                      </p>
-                                      {group.cta && (
-                                        <p className="text-dark/70 font-medium mt-1">
-                                          {group.cta}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
+                  <div className="space-y-4">
+                    {(() => {
+                      const s = serviceData.find((x) => x.id === selectedService);
+                      if (!s) return null;
+                      const items = s.content;
+                      const rows: React.ReactNode[] = [];
 
-                                  {group.badge && (
-                                    <div className="flex-shrink-0">
-                                      <span className="inline-flex items-center rounded-full bg-accent text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em]">
-                                        {group.badge}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
+                      for (let idx = 0; idx < items.length; idx++) {
+                        const item = items[idx];
 
-                                <div className="mt-4 space-y-3">
-                                  {group.items.map((sub, j) => (
-                                    <div key={j} className="flex items-start gap-3 pl-2 md:pl-4">
-                                      <div className="mt-1 flex-shrink-0">
-                                        <CheckCircle2 className="w-4 h-4 text-accent/80" />
-                                      </div>
-                                      <p
-                                        className="text-dark/70 font-medium"
-                                        style={{
-                                          fontSize: 'clamp(0.9rem, 1.0vw, 1.0rem)',
-                                          lineHeight: 1.55,
-                                        }}
-                                      >
-                                        {sub}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              </motion.div>
-                            );
-                          }
+                        // ✅ Only for Cleaning Services: nest + highlight Specialized Cleaning Services
+                        if (
+                          selectedService === 2 &&
+                          typeof item === 'string' &&
+                          item.trim().toLowerCase().startsWith('specialized cleaning services')
+                        ) {
+                          const subItems = items.slice(idx + 1, idx + 4);
 
-                          return (
+                          rows.push(
                             <motion.div
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -552,25 +422,85 @@ const Services: React.FC = () => {
                                 duration: 0.22,
                                 ease: 'easeOut',
                               }}
-                              key={idx}
-                              className="flex items-start gap-4"
+                              key={`group-${idx}`}
+                              className="rounded-2xl p-5 md:p-6 ring-1 bg-accent/10 ring-accent/25"
                             >
-                              <div className="mt-1 flex-shrink-0">
-                                <CheckCircle2 className="w-5 h-5 text-accent" />
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="mt-0.5 flex-shrink-0">
+                                    <Sparkles className="w-5 h-5 text-accent" />
+                                  </div>
+                                  <p
+                                    className="text-dark font-extrabold"
+                                    style={{
+                                      fontSize: 'clamp(0.98rem, 1.15vw, 1.08rem)',
+                                      lineHeight: 1.35,
+                                    }}
+                                  >
+                                    Specialized Cleaning Services
+                                  </p>
+                                </div>
+
+                                <span className="inline-flex items-center rounded-full bg-accent text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em]">
+                                  HIGH-IMPACT
+                                </span>
                               </div>
-                              <p
-                                className="text-dark/70 font-medium"
-                                style={{
-                                  fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
-                                  lineHeight: 1.6,
-                                }}
-                              >
-                                {item}
-                              </p>
+
+                              <div className="mt-4 space-y-3">
+                                {subItems.map((sub, j) => (
+                                  <div key={j} className="flex items-start gap-3 pl-2 md:pl-4">
+                                    <div className="mt-1 flex-shrink-0">
+                                      <CheckCircle2 className="w-4 h-4 text-accent/80" />
+                                    </div>
+                                    <p
+                                      className="text-dark/70 font-medium"
+                                      style={{
+                                        fontSize: 'clamp(0.9rem, 1.0vw, 1.0rem)',
+                                        lineHeight: 1.55,
+                                      }}
+                                    >
+                                      {sub}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
                             </motion.div>
                           );
-                        })}
-                    </div>
+
+                          idx += subItems.length; // skip the 3 subitems
+                          continue;
+                        }
+
+                        rows.push(
+                          <motion.div
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{
+                              delay: 0.06 + idx * 0.04,
+                              duration: 0.22,
+                              ease: 'easeOut',
+                            }}
+                            key={idx}
+                            className="flex items-start gap-4"
+                          >
+                            <div className="mt-1 flex-shrink-0">
+                              <CheckCircle2 className="w-5 h-5 text-accent" />
+                            </div>
+                            <p
+                              className="text-dark/70 font-medium"
+                              style={{
+                                fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              {item}
+                            </p>
+                          </motion.div>
+                        );
+                      }
+
+                      return rows;
+                    })()}
                   </div>
                 </div>
               </div>
