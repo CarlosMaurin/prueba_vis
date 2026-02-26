@@ -29,6 +29,10 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
   const reducedMotion = usePrefersReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // ✅ Logo docking (solo mueve el logo, no los textos)
+  const logoDockRef = useRef<HTMLDivElement>(null);
+  const [logoOffset, setLogoOffset] = useState(0);
+
   // Ensure video plays (best-effort)
   useEffect(() => {
     const v = videoRef.current;
@@ -58,6 +62,69 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
     const t = window.setTimeout(() => onComplete(), 4200);
     return () => window.clearTimeout(t);
   }, [onComplete, reducedMotion]);
+
+  // ✅ Dynamic safe-area for the HERO logo vs. the fixed desktop navbar
+  // Goal: move ONLY the logo down if the navbar overlaps it (texts stay where they are).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mql = window.matchMedia("(min-width: 768px)"); // Tailwind md
+
+    const compute = () => {
+      if (!mql.matches) {
+        setLogoOffset(0);
+        return;
+      }
+
+      const nav = document.querySelector("nav");
+      const dock = logoDockRef.current;
+      if (!nav || !dock) {
+        setLogoOffset(0);
+        return;
+      }
+
+      const navRect = nav.getBoundingClientRect();
+      const dockRect = dock.getBoundingClientRect();
+
+      // Keep a small breathing space between navbar and logo
+      const desiredTop = navRect.bottom + 14;
+      const delta = desiredTop - dockRect.top;
+
+      // If delta > 0 => navbar is overlapping (or too close). Push logo down.
+      // Cap to avoid extreme shifts on odd layouts.
+      const next = delta > 0 ? Math.min(delta, 140) : 0;
+      setLogoOffset(next);
+    };
+
+    const rafCompute = () => window.requestAnimationFrame(compute);
+
+    // Run a few times to catch: font swap, image load, navbar blur size, etc.
+    rafCompute();
+    const t1 = window.setTimeout(rafCompute, 100);
+    const t2 = window.setTimeout(rafCompute, 300);
+    const t3 = window.setTimeout(rafCompute, 900);
+
+    window.addEventListener("resize", rafCompute);
+    window.addEventListener("load", rafCompute);
+
+    // Optional: observe navbar size changes (backdrop blur / responsive)
+    let ro: ResizeObserver | null = null;
+    if ("ResizeObserver" in window) {
+      ro = new ResizeObserver(() => rafCompute());
+      try {
+        ro.observe(nav);
+      } catch {}
+    }
+
+    return () => {
+      window.removeEventListener("resize", rafCompute);
+      window.removeEventListener("load", rafCompute);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+      if (ro) ro.disconnect();
+    };
+  }, []);
 
   const noiseSvgDataUrl = useMemo(() => {
     const svg = `
@@ -141,7 +208,7 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
                 "radial-gradient(70% 60% at 50% 35%, rgba(124,168,122,0.14) 0%, rgba(49,103,101,0.18) 45%, rgba(46,45,58,0.62) 100%)",
             }}
           />
-        <div
+          <div
             className="absolute inset-0"
             style={{
               background:
@@ -167,7 +234,11 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
         {reducedMotion ? (
           <>
-            <div className="mb-10 md:mb-12">
+            <div
+              ref={logoDockRef}
+              className="mb-10 md:mb-12 will-change-transform"
+              style={{ transform: `translate3d(0, ${logoOffset}px, 0)` }}
+            >
               <img
                 src="https://res.cloudinary.com/deit2ncmp/image/upload/v1771326237/logo_blanco_completo_sin_borde_h1k6il.png"
                 alt="V.I.S. Logo"
@@ -186,13 +257,19 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
           </>
         ) : (
           <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col items-center">
-            <motion.div variants={item} className="mb-10 md:mb-12">
-              <img
-                src="https://res.cloudinary.com/deit2ncmp/image/upload/v1771326237/logo_blanco_completo_sin_borde_h1k6il.png"
-                alt="V.I.S. Logo"
-                className="h-auto w-40 md:w-56 laptop:w-64 drop-shadow-2xl"
-              />
-            </motion.div>
+            <div
+              ref={logoDockRef}
+              className="mb-10 md:mb-12 will-change-transform"
+              style={{ transform: `translate3d(0, ${logoOffset}px, 0)` }}
+            >
+              <motion.div variants={item}>
+                <img
+                  src="https://res.cloudinary.com/deit2ncmp/image/upload/v1771326237/logo_blanco_completo_sin_borde_h1k6il.png"
+                  alt="V.I.S. Logo"
+                  className="h-auto w-40 md:w-56 laptop:w-64 drop-shadow-2xl"
+                />
+              </motion.div>
+            </div>
 
             <motion.h1
               variants={item}
