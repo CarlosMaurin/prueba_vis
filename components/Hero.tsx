@@ -49,7 +49,7 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
     if (p && typeof p.catch === "function") p.catch(() => {});
   }, [reducedMotion]);
 
-  // Call onComplete after the full entrance sequence ends (super suave y elegante)
+  // Call onComplete after the full entrance sequence ends
   useEffect(() => {
     if (!onComplete) return;
 
@@ -58,13 +58,11 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
       return;
     }
 
-    // Calibrado para: delayChildren 0.6 + (2 * stagger 0.5) + duration 1.5 + buffer
     const t = window.setTimeout(() => onComplete(), 4200);
     return () => window.clearTimeout(t);
   }, [onComplete, reducedMotion]);
 
   // ✅ Dynamic safe-area for the HERO logo vs. the fixed desktop navbar
-  // Goal: move ONLY the logo down if the navbar overlaps it (texts stay where they are).
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -72,48 +70,52 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
 
     const compute = () => {
       if (!mql.matches) {
-        setLogoOffset(0);
+        setLogoOffset((prev) => (prev !== 0 ? 0 : prev));
         return;
       }
 
       const nav = document.querySelector("nav");
       const dock = logoDockRef.current;
       if (!nav || !dock) {
-        setLogoOffset(0);
+        setLogoOffset((prev) => (prev !== 0 ? 0 : prev));
         return;
       }
 
       const navRect = nav.getBoundingClientRect();
       const dockRect = dock.getBoundingClientRect();
 
-      // Keep a small breathing space between navbar and logo
+      // breathing space
       const desiredTop = navRect.bottom + 14;
       const delta = desiredTop - dockRect.top;
 
-      // If delta > 0 => navbar is overlapping (or too close). Push logo down.
-      // Cap to avoid extreme shifts on odd layouts.
-      const next = delta > 0 ? Math.min(delta, 140) : 0;
-      setLogoOffset(next);
+      // Cap shift
+      const nextRaw = delta > 0 ? Math.min(delta, 140) : 0;
+
+      // Round and avoid micro jitter
+      const next = Math.round(nextRaw);
+
+      setLogoOffset((prev) => (Math.abs(prev - next) > 1 ? next : prev));
     };
 
     const rafCompute = () => window.requestAnimationFrame(compute);
 
-    // Run a few times to catch: font swap, image load, navbar blur size, etc.
+    // Run after mount + after layout settles
     rafCompute();
-    const t1 = window.setTimeout(rafCompute, 100);
-    const t2 = window.setTimeout(rafCompute, 300);
-    const t3 = window.setTimeout(rafCompute, 900);
+    const t1 = window.setTimeout(rafCompute, 120);
+    const t2 = window.setTimeout(rafCompute, 350);
 
     window.addEventListener("resize", rafCompute);
     window.addEventListener("load", rafCompute);
 
-    // Optional: observe navbar size changes (backdrop blur / responsive)
     let ro: ResizeObserver | null = null;
     if ("ResizeObserver" in window) {
-      ro = new ResizeObserver(() => rafCompute());
-      try {
-        ro.observe(nav);
-      } catch {}
+      const nav = document.querySelector("nav");
+      if (nav) {
+        ro = new ResizeObserver(() => rafCompute());
+        try {
+          ro.observe(nav);
+        } catch {}
+      }
     }
 
     return () => {
@@ -121,7 +123,6 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
       window.removeEventListener("load", rafCompute);
       window.clearTimeout(t1);
       window.clearTimeout(t2);
-      window.clearTimeout(t3);
       if (ro) ro.disconnect();
     };
   }, []);
@@ -146,11 +147,6 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
 
   /**
    * ✅ Preset: "Super suave y elegante"
-   * - Movimiento sutil (y: 10)
-   * - Duración larga (1.5s)
-   * - Easing buttery
-   * - Stagger con aire (0.5s)
-   * - Inicio con pausa elegante (0.6s)
    */
   const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -234,17 +230,19 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
         {reducedMotion ? (
           <>
-            <div
+            {/* ✅ Dock is motion-owned to avoid transform “jump” */}
+            <motion.div
               ref={logoDockRef}
               className="mb-10 md:mb-12 will-change-transform"
-              style={{ transform: `translate3d(0, ${logoOffset}px, 0)` }}
+              animate={{ y: logoOffset }}
+              transition={{ duration: 0.65, ease: EASE }}
             >
               <img
                 src="https://res.cloudinary.com/deit2ncmp/image/upload/v1771326237/logo_blanco_completo_sin_borde_h1k6il.png"
                 alt="V.I.S. Logo"
                 className="h-auto w-40 md:w-56 laptop:w-64 drop-shadow-2xl"
               />
-            </div>
+            </motion.div>
 
             <h1 className="mb-6 max-w-4xl text-lg font-medium uppercase leading-tight tracking-wide text-[#FFFFFF] md:text-2xl laptop:text-3xl drop-shadow-lg">
               PROFESSIONAL PROPERTY MANAGEMENT & CARE SERVICES
@@ -257,10 +255,12 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
           </>
         ) : (
           <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col items-center">
-            <div
+            {/* ✅ Dock is motion-owned to avoid transform “jump” */}
+            <motion.div
               ref={logoDockRef}
               className="mb-10 md:mb-12 will-change-transform"
-              style={{ transform: `translate3d(0, ${logoOffset}px, 0)` }}
+              animate={{ y: logoOffset }}
+              transition={{ duration: 0.65, ease: EASE }}
             >
               <motion.div variants={item}>
                 <img
@@ -269,7 +269,7 @@ const Hero: React.FC<HeroProps> = ({ onComplete }) => {
                   className="h-auto w-40 md:w-56 laptop:w-64 drop-shadow-2xl"
                 />
               </motion.div>
-            </div>
+            </motion.div>
 
             <motion.h1
               variants={item}
