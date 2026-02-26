@@ -120,6 +120,7 @@ const Services: React.FC = () => {
 
   // Sticky wrapper height tuning
   const [wrapperHeightPx, setWrapperHeightPx] = useState<number | null>(null);
+  const [navOffsetPx, setNavOffsetPx] = useState(110);
 
   const [selectedService, setSelectedService] = useState<number | null>(null);
 
@@ -229,6 +230,47 @@ const Services: React.FC = () => {
     ],
     []
   );
+
+  // Dynamic wrapper height (keeps sticky area stable across desktop sizes)
+  useEffect(() => {
+    const computeWrapperHeight = () => {
+      setWrapperHeightPx(null);
+    };
+    computeWrapperHeight();
+    window.addEventListener('resize', computeWrapperHeight);
+    return () => window.removeEventListener('resize', computeWrapperHeight);
+  }, []);
+
+  // Compute navbar offset for modal top padding (avoids overlap)
+  useEffect(() => {
+    const computeNavOffset = () => {
+      const nav = document.querySelector('nav');
+      if (!nav) return;
+      const rect = nav.getBoundingClientRect();
+      setNavOffsetPx(Math.round(rect.bottom + 14));
+    };
+
+    computeNavOffset();
+    window.addEventListener('resize', computeNavOffset);
+    window.addEventListener('load', computeNavOffset);
+
+    let ro: ResizeObserver | null = null;
+    if ('ResizeObserver' in window) {
+      const nav = document.querySelector('nav');
+      if (nav) {
+        ro = new ResizeObserver(() => computeNavOffset());
+        try {
+          ro.observe(nav);
+        } catch {}
+      }
+    }
+
+    return () => {
+      window.removeEventListener('resize', computeNavOffset);
+      window.removeEventListener('load', computeNavOffset);
+      if (ro) ro.disconnect();
+    };
+  }, []);
 
   const closeModal = () => setSelectedService(null);
 
@@ -362,58 +404,135 @@ const Services: React.FC = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.98 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-0 z-[201] flex items-start justify-center px-4 pt-24 md:pt-28 pb-6"
+              className="fixed inset-0 z-[201] flex justify-center"
+              style={{
+                paddingTop: `${navOffsetPx}px`,
+                paddingLeft: '16px',
+                paddingRight: '16px',
+                paddingBottom: '18px',
+              }}
               onClick={closeModal}
             >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-2xl bg-white rounded-[2.25rem] shadow-2xl overflow-hidden"
-              >
+              <div onClick={(e) => e.stopPropagation()} className="w-full flex justify-center">
                 <div
-                  className="relative"
-                  style={{ padding: 'clamp(18px, 2.1vw, 36px)' }}
+                  className="w-full bg-white rounded-[2.25rem] shadow-2xl overflow-hidden"
+                  style={{
+                    maxWidth: 'min(720px, 92vw)',
+                    maxHeight: `calc(100vh - ${navOffsetPx}px - 22px)`,
+                    overflowY: 'auto',
+                  }}
                 >
-                  <button
-                    onClick={closeModal}
-                    className="absolute top-5 right-5 p-2 rounded-full bg-cream hover:bg-dark hover:text-white transition-all duration-300"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="relative" style={{ padding: 'clamp(18px, 2.1vw, 36px)' }}>
+                    <button
+                      onClick={closeModal}
+                      className="absolute top-5 right-5 p-2 rounded-full bg-cream hover:bg-dark hover:text-white transition-all duration-300"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
 
-                  <div className="inline-block px-4 py-1.5 rounded-full bg-accent/10 text-[10px] text-accent font-black uppercase tracking-[0.2em] mb-4">
-                    Service Details
-                  </div>
+                    <div className="inline-block px-4 py-1.5 rounded-full bg-accent/10 text-[10px] text-accent font-black uppercase tracking-[0.2em] mb-4">
+                      Service Details
+                    </div>
 
-                  <h2
-                    className="text-primary mb-8 leading-tight"
-                    style={{
-                      fontSize: 'clamp(1.6rem, 2.1vw, 2.4rem)',
-                      fontWeight: 700,
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    {serviceData.find((s) => s.id === selectedService)?.title}
-                  </h2>
+                    <h2
+                      className="text-primary mb-8 leading-tight"
+                      style={{
+                        fontSize: 'clamp(1.6rem, 2.1vw, 2.4rem)',
+                        fontWeight: 700,
+                        letterSpacing: '-0.02em',
+                      }}
+                    >
+                      {serviceData.find((s) => s.id === selectedService)?.title}
+                    </h2>
 
-                  <div className="space-y-4">
-                    {(() => {
-                      const s = serviceData.find((x) => x.id === selectedService);
-                      if (!s) return null;
-                      const items = s.content;
-                      const rows: React.ReactNode[] = [];
+                    <div className="space-y-4">
+                      {serviceData
+                        .find((s) => s.id === selectedService)
+                        ?.content.map((item, idx) => {
+                          // ✅ ONLY CHANGE: Cleaning Services -> nest + highlight Specialized Cleaning Services
+                          if (selectedService === 2 && typeof item === 'string') {
+                            const label = item.trim().toLowerCase();
+                            const isGroupTitle =
+                              label === 'specialized cleaning services:' ||
+                              label === 'specialized cleaning services';
 
-                      for (let idx = 0; idx < items.length; idx++) {
-                        const item = items[idx];
+                            if (isGroupTitle) {
+                              const items =
+                                serviceData.find((s) => s.id === selectedService)?.content ?? [];
+                              const subItems = items.slice(idx + 1, idx + 4);
 
-                        // ✅ Only for Cleaning Services: nest + highlight Specialized Cleaning Services
-                        if (
-                          selectedService === 2 &&
-                          typeof item === 'string' &&
-                          item.trim().toLowerCase().startsWith('specialized cleaning services')
-                        ) {
-                          const subItems = items.slice(idx + 1, idx + 4);
+                              return (
+                                <motion.div
+                                  initial={{ opacity: 0, x: -8 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{
+                                    delay: 0.06 + idx * 0.04,
+                                    duration: 0.22,
+                                    ease: 'easeOut',
+                                  }}
+                                  key={idx}
+                                  className="rounded-2xl bg-accent/10 border border-accent/20 p-5"
+                                >
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-3">
+                                      <div className="mt-0.5 flex-shrink-0">
+                                        <Sparkles className="w-5 h-5 text-accent" />
+                                      </div>
+                                      <p
+                                        className="text-dark font-bold"
+                                        style={{
+                                          fontSize: 'clamp(0.95rem, 1.05vw, 1.02rem)',
+                                          lineHeight: 1.4,
+                                        }}
+                                      >
+                                        Specialized Cleaning Services
+                                      </p>
+                                    </div>
 
-                          rows.push(
+                                    <span className="inline-flex items-center rounded-full bg-accent text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em]">
+                                      HIGH-IMPACT
+                                    </span>
+                                  </div>
+
+                                  <div className="mt-4 space-y-3 pl-8">
+                                    {subItems.map((sub, j) => (
+                                      <div key={j} className="flex items-start gap-4">
+                                        <div className="mt-1 flex-shrink-0">
+                                          <CheckCircle2 className="w-4 h-4 text-accent" />
+                                        </div>
+                                        <p
+                                          className="text-dark/70 font-medium"
+                                          style={{
+                                            fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                            lineHeight: 1.6,
+                                          }}
+                                        >
+                                          {sub}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              );
+                            }
+
+                            // Skip the 3 sub-items after the group title (they are rendered inside the group)
+                            const items =
+                              serviceData.find((s) => s.id === selectedService)?.content ?? [];
+                            const prev = items[idx - 1];
+                            const prev2 = items[idx - 2];
+                            const prev3 = items[idx - 3];
+
+                            const isTitle = (v: any) =>
+                              typeof v === 'string' &&
+                              (v.trim().toLowerCase() === 'specialized cleaning services:' ||
+                                v.trim().toLowerCase() === 'specialized cleaning services');
+
+                            if (isTitle(prev) || isTitle(prev2) || isTitle(prev3)) return null;
+                          }
+
+                          // default item render (UNCHANGED)
+                          return (
                             <motion.div
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -422,85 +541,25 @@ const Services: React.FC = () => {
                                 duration: 0.22,
                                 ease: 'easeOut',
                               }}
-                              key={`group-${idx}`}
-                              className="rounded-2xl p-5 md:p-6 ring-1 bg-accent/10 ring-accent/25"
+                              key={idx}
+                              className="flex items-start gap-4"
                             >
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex items-start gap-3">
-                                  <div className="mt-0.5 flex-shrink-0">
-                                    <Sparkles className="w-5 h-5 text-accent" />
-                                  </div>
-                                  <p
-                                    className="text-dark font-extrabold"
-                                    style={{
-                                      fontSize: 'clamp(0.98rem, 1.15vw, 1.08rem)',
-                                      lineHeight: 1.35,
-                                    }}
-                                  >
-                                    Specialized Cleaning Services
-                                  </p>
-                                </div>
-
-                                <span className="inline-flex items-center rounded-full bg-accent text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em]">
-                                  HIGH-IMPACT
-                                </span>
+                              <div className="mt-1 flex-shrink-0">
+                                <CheckCircle2 className="w-5 h-5 text-accent" />
                               </div>
-
-                              <div className="mt-4 space-y-3">
-                                {subItems.map((sub, j) => (
-                                  <div key={j} className="flex items-start gap-3 pl-2 md:pl-4">
-                                    <div className="mt-1 flex-shrink-0">
-                                      <CheckCircle2 className="w-4 h-4 text-accent/80" />
-                                    </div>
-                                    <p
-                                      className="text-dark/70 font-medium"
-                                      style={{
-                                        fontSize: 'clamp(0.9rem, 1.0vw, 1.0rem)',
-                                        lineHeight: 1.55,
-                                      }}
-                                    >
-                                      {sub}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
+                              <p
+                                className="text-dark/70 font-medium"
+                                style={{
+                                  fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                  lineHeight: 1.6,
+                                }}
+                              >
+                                {item}
+                              </p>
                             </motion.div>
                           );
-
-                          idx += subItems.length; // skip the 3 subitems
-                          continue;
-                        }
-
-                        rows.push(
-                          <motion.div
-                            initial={{ opacity: 0, x: -8 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{
-                              delay: 0.06 + idx * 0.04,
-                              duration: 0.22,
-                              ease: 'easeOut',
-                            }}
-                            key={idx}
-                            className="flex items-start gap-4"
-                          >
-                            <div className="mt-1 flex-shrink-0">
-                              <CheckCircle2 className="w-5 h-5 text-accent" />
-                            </div>
-                            <p
-                              className="text-dark/70 font-medium"
-                              style={{
-                                fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
-                                lineHeight: 1.6,
-                              }}
-                            >
-                              {item}
-                            </p>
-                          </motion.div>
-                        );
-                      }
-
-                      return rows;
-                    })()}
+                        })}
+                    </div>
                   </div>
                 </div>
               </div>
