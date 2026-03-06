@@ -479,7 +479,7 @@ const Services: React.FC = () => {
             >
               <div onClick={(e) => e.stopPropagation()} className="w-full flex justify-center">
                 <div
-                  className="w-full rounded-[2.25rem] shadow-2xl overflow-hidden bg-white/70 backdrop-blur-xl border border-white/40"
+                  className="w-full rounded-[2.25rem] shadow-2xl overflow-hidden bg-white"
                   style={{
                     maxWidth: 'min(720px, 92vw)',
                     maxHeight: `calc(100vh - ${navOffsetPx}px - 22px)`,
@@ -533,7 +533,7 @@ const Services: React.FC = () => {
                               <p
                                 className="text-dark/70 font-medium"
                                 style={{
-                                  fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                  fontSize: 'clamp(0.83rem, 0.95vw, 0.92rem)',
                                   lineHeight: 1.6,
                                 }}
                               >
@@ -597,7 +597,7 @@ const Services: React.FC = () => {
                                 <p
                                   className="text-dark/70 font-medium"
                                   style={{
-                                    fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                    fontSize: 'clamp(0.83rem, 0.95vw, 0.92rem)',
                                     lineHeight: 1.6,
                                   }}
                                 >
@@ -630,7 +630,7 @@ const Services: React.FC = () => {
                               <p
                                 className="text-dark/70 font-medium"
                                 style={{
-                                  fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                  fontSize: 'clamp(0.83rem, 0.95vw, 0.92rem)',
                                   lineHeight: 1.6,
                                 }}
                               >
