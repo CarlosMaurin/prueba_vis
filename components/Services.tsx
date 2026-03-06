@@ -29,13 +29,12 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
   className = '',
   style = {},
 }) => {
-  // Smooth entrance
   const opacity = useTransform(progress, range, [0, 1]);
   const translateY = useTransform(progress, range, [60, 0]);
   const scale = useTransform(progress, range, [0.975, 1]);
 
-  const PAD = 'clamp(18px, 2.2vw, 34px)'; // single source of truth for spacing
-  const FOOTER_SAFE = 'clamp(72px, 10vh, 110px)'; // space reserved for the footer (button + number)
+  const PAD = 'clamp(18px, 2.2vw, 34px)';
+  const FOOTER_SAFE = 'clamp(72px, 10vh, 110px)';
 
   const borderStyle: React.CSSProperties = {
     position: 'absolute',
@@ -64,14 +63,12 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
     >
       <div style={borderStyle} />
 
-      {/* Content */}
       <div
         className="relative z-10 h-full"
         style={{
           padding: PAD,
         }}
       >
-        {/* Reserve space so content never crashes into the footer */}
         <div
           className="h-full"
           style={{
@@ -79,7 +76,6 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
           }}
         >
           <div>
-            {/* Label */}
             <div
               className="inline-flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 font-bold uppercase tracking-[0.18em] text-accent"
               style={{
@@ -91,7 +87,6 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
               {category}
             </div>
 
-            {/* Title */}
             <h3
               className="font-serif text-white tracking-tight"
               style={{
@@ -104,7 +99,6 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
               {title}
             </h3>
 
-            {/* Description */}
             <p
               className="text-white/60"
               style={{
@@ -118,7 +112,6 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
           </div>
         </div>
 
-        {/* ✅ Footer ABSOLUTE — guarantees perfect alignment across all cards */}
         <div
           className="absolute flex items-end justify-between"
           style={{
@@ -213,11 +206,10 @@ const Services: React.FC = () => {
       const vh = window.innerHeight;
       const vw = window.innerWidth;
 
-      // ✅ Added tail scroll on desktop so next section doesn't appear abruptly
       let screens = 5.2;
       if (vw >= 768) screens = 4.8;
-      if (vw >= 1024) screens = 4.4; // was 3.8
-      if (vw >= 1366) screens = 4.9; // was 4.2
+      if (vw >= 1024) screens = 4.4;
+      if (vw >= 1366) screens = 4.9;
       if (vh < 720) screens += 0.5;
 
       setWrapperHeightPx(Math.round(vh * screens));
@@ -244,18 +236,15 @@ const Services: React.FC = () => {
     mass: 0.5,
   });
 
-  // Titles
   const bigTitleOpacity = useTransform(smoothProgress, [0, 0.12], [0, 0.07]);
   const titleOpacity = useTransform(smoothProgress, [0, 0.12], [0, 1]);
   const titleY = useTransform(smoothProgress, [0, 0.12], [10, 0]);
 
-  // Mobile title
   const titleMobileOpacity = useTransform(smoothProgress, [0, 0.12], [0, 1]);
   const titleMobileY = useTransform(smoothProgress, [0, 0.12], [14, 0]);
 
-  // Mobile card ranges
-  const mCard1Range: [number, number] = [0.12, 0.40];
-  const mCard2Range: [number, number] = [0.42, 0.70];
+  const mCard1Range: [number, number] = [0.12, 0.4];
+  const mCard2Range: [number, number] = [0.42, 0.7];
   const mCard3Range: [number, number] = [0.72, 1.0];
 
   const mCard1X = useTransform(smoothProgress, mCard1Range, ['105vw', '0vw']);
@@ -316,7 +305,6 @@ const Services: React.FC = () => {
         <div className="sticky top-0 h-screen w-full overflow-hidden px-6">
           <div className="max-w-7xl mx-auto w-full h-full">
             <div className="h-full flex flex-col justify-center pt-28 md:pt-32 pb-16 md:pb-20">
-              {/* Desktop Title */}
               <div className="hidden md:block relative mb-10 lg:mb-12">
                 <motion.h2
                   style={{ opacity: bigTitleOpacity }}
@@ -338,7 +326,6 @@ const Services: React.FC = () => {
                 </motion.div>
               </div>
 
-              {/* Mobile Title */}
               <div className="md:hidden mb-10">
                 <motion.div style={{ opacity: titleMobileOpacity, y: titleMobileY }} className="text-center">
                   <h2 className="text-4xl font-bold text-primary tracking-tight uppercase mb-4">
@@ -348,7 +335,6 @@ const Services: React.FC = () => {
                 </motion.div>
               </div>
 
-              {/* Desktop Grid */}
               <div className="hidden md:grid grid-cols-3 gap-10 lg:gap-12 items-stretch">
                 <ServiceCard
                   number="#01"
@@ -357,7 +343,7 @@ const Services: React.FC = () => {
                   description="From preventive technical support to seamless vendor coordination, we handle every operational detail. Our dedicated team acts as your local eyes and ears."
                   direction="left"
                   progress={smoothProgress}
-                  range={[0.10, 0.30]}
+                  range={[0.1, 0.3]}
                   onExplore={() => setSelectedService(1)}
                 />
                 <ServiceCard
@@ -367,7 +353,7 @@ const Services: React.FC = () => {
                   description="Professional cleaning services for homes and commercial spaces, including routine, deep, and specialized cleaning, delivering spotless results and consistently high standards."
                   direction="up"
                   progress={smoothProgress}
-                  range={[0.30, 0.55]}
+                  range={[0.3, 0.55]}
                   onExplore={() => setSelectedService(2)}
                 />
                 <ServiceCard
@@ -377,12 +363,11 @@ const Services: React.FC = () => {
                   description="Personalized concierge services for owners and guests, including guest assistance, reservations, and lifestyle support, creating seamless experiences and complete peace of mind."
                   direction="right"
                   progress={smoothProgress}
-                  range={[0.55, 0.80]}
+                  range={[0.55, 0.8]}
                   onExplore={() => setSelectedService(3)}
                 />
               </div>
 
-              {/* Mobile narrative */}
               <div className="md:hidden relative flex-1 flex items-center justify-center">
                 <div className="relative w-full" style={{ height: 'clamp(320px, 44vh, 460px)' }}>
                   <ServiceCard
@@ -451,7 +436,6 @@ const Services: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal */}
       <AnimatePresence>
         {selectedService !== null && (
           <>
@@ -482,11 +466,11 @@ const Services: React.FC = () => {
                   className="w-full rounded-[2.25rem] shadow-2xl overflow-hidden bg-white"
                   style={{
                     maxWidth: 'min(720px, 92vw)',
-                    maxHeight: `calc(100vh - ${navOffsetPx}px - 22px)`,
+                    maxHeight: `calc(100vh - ${navOffsetPx}px - 10px)`,
                     overflowY: 'auto',
                   }}
                 >
-                  <div className="relative" style={{ padding: 'clamp(18px, 2.1vw, 36px)' }}>
+                  <div className="relative" style={{ padding: 'clamp(16px, 1.8vw, 30px)' }}>
                     <button
                       onClick={closeModal}
                       className="absolute top-5 right-5 p-2 rounded-full bg-cream hover:bg-dark hover:text-white transition-all duration-300"
@@ -510,8 +494,8 @@ const Services: React.FC = () => {
                     </h2>
 
                     {selectedService === 2 ? (
-                      <div className="space-y-6">
-                        <div className="space-y-5">
+                      <div className="space-y-4">
+                        <div className="space-y-4">
                           {[
                             'Residential Cleaning (Checkout Clean, Move-Out Clean, Deep Clean)',
                             'Commercial Cleaning (Restaurants, Offices, Common Areas)',
@@ -552,9 +536,9 @@ const Services: React.FC = () => {
                             ease: 'easeOut',
                           }}
                           className="rounded-[1.25rem] border border-accent/20 bg-accent/10"
-                          style={{ padding: 'clamp(18px, 1.8vw, 24px)' }}
+                          style={{ padding: 'clamp(14px, 1.4vw, 18px)' }}
                         >
-                          <div className="flex items-start justify-between gap-4 mb-5">
+                          <div className="flex items-start justify-between gap-4 mb-4">
                             <div className="flex items-center gap-3">
                               <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-[1px]" />
                               <h3
@@ -574,7 +558,7 @@ const Services: React.FC = () => {
                             </span>
                           </div>
 
-                          <div className="space-y-4 pl-1">
+                          <div className="space-y-3 pl-1">
                             {[
                               'Window & Gutter Cleaning',
                               'Carpet & Upholstery Steam Cleaning',
