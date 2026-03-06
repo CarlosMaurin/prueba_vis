@@ -7,7 +7,7 @@ import {
   MotionValue,
   useSpring,
 } from 'framer-motion';
-import { X, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, CheckCircle2 } from 'lucide-react';
 import { ServiceCardProps } from '../types';
 
 interface AnimatedServiceCardProps extends ServiceCardProps {
@@ -42,73 +42,159 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
     inset: 0,
     padding: '6px',
     borderRadius: '2.25rem',
-    background: 'conic-gradient(#316765, #7CA87A, #316765)',
-    mask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+    background: 'conic-gradient(#316765, #7CA87A, #316765, #7CA87A, #316765)',
     WebkitMask:
-      'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
-    maskComposite: 'exclude',
+      'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
     WebkitMaskComposite: 'xor',
-    opacity: 0.35,
+    maskComposite: 'exclude',
+    pointerEvents: 'none',
+    zIndex: 5,
   };
 
   return (
     <motion.div
-      style={{ opacity, y: translateY, scale, ...style }}
-      className={`relative rounded-[2.25rem] overflow-hidden ${className}`}
+      style={{
+        opacity,
+        y: translateY,
+        scale,
+        height: 'clamp(320px, 44vh, 460px)',
+        ...style,
+      }}
+      className={`group relative w-full bg-[#2E2D3A] rounded-[2.25rem] overflow-hidden shadow-2xl ${className}`}
     >
       <div style={borderStyle} />
 
-      <div className="relative w-full h-full bg-white rounded-[2.25rem] shadow-xl">
-        <div className="relative h-full flex flex-col">
-          <div
-            className="flex-1 flex flex-col"
-            style={{
-              padding: PAD,
-              paddingBottom: `calc(${FOOTER_SAFE} + 12px)`,
-            }}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-cream text-dark text-[10px] font-black uppercase tracking-[0.22em]">
-                {category}
-              </div>
-              <div className="text-dark/40 text-xs font-black tracking-[0.18em]">
-                {number}
-              </div>
+      {/* Content */}
+      <div
+        className="relative z-10 h-full"
+        style={{
+          padding: PAD,
+        }}
+      >
+        {/* Reserve space so content never crashes into the footer */}
+        <div
+          className="h-full"
+          style={{
+            paddingBottom: FOOTER_SAFE,
+          }}
+        >
+          <div>
+            {/* Label */}
+            <div
+              className="inline-flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 font-bold uppercase tracking-[0.18em] text-accent"
+              style={{
+                padding: 'clamp(5px, 0.55vw, 8px) clamp(11px, 0.9vw, 14px)',
+                fontSize: 'clamp(8.5px, 0.55vw, 10px)',
+                marginBottom: 'clamp(12px, 1.1vw, 18px)',
+              }}
+            >
+              {category}
             </div>
 
+            {/* Title */}
             <h3
-              className="text-primary font-extrabold leading-tight mb-4"
+              className="font-serif text-white tracking-tight"
               style={{
-                fontSize: 'clamp(1.25rem, 1.7vw, 1.7rem)',
-                letterSpacing: '-0.02em',
+                fontSize: 'clamp(1.35rem, 1.5vw, 2.2rem)',
+                lineHeight: 1.08,
+                marginBottom: 'clamp(10px, 1.1vw, 16px)',
+                textWrap: 'balance' as any,
               }}
             >
               {title}
             </h3>
 
+            {/* Description */}
             <p
-              className="text-dark/70 font-medium"
+              className="text-white/60"
               style={{
-                fontSize: 'clamp(0.95rem, 1.1vw, 1.05rem)',
-                lineHeight: 1.65,
+                fontSize: 'clamp(0.84rem, 0.95vw, 1.02rem)',
+                lineHeight: 1.6,
+                maxWidth: '42ch',
               }}
             >
               {description}
             </p>
           </div>
+        </div>
 
-          <div
-            className="absolute left-0 right-0 bottom-0"
-            style={{ padding: PAD }}
+        {/* ✅ Footer ABSOLUTE — guarantees perfect alignment across all cards */}
+        <div
+          className="absolute flex items-end justify-between"
+          style={{
+            left: PAD,
+            right: PAD,
+            bottom: PAD,
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onExplore();
+            }}
+            className="group/btn relative inline-flex items-center gap-3 bg-primary hover:bg-accent text-white font-bold transition-all duration-300 shadow-lg overflow-hidden whitespace-nowrap"
+            style={{
+              borderRadius: 999,
+              padding: 'clamp(9px, 0.85vw, 12px) clamp(14px, 1.2vw, 18px)',
+              fontSize: 'clamp(10.5px, 0.8vw, 12px)',
+            }}
           >
-            <button
-              onClick={onExplore}
-              className="w-full rounded-full bg-dark text-white font-semibold py-3.5 hover:bg-primary transition-colors duration-300"
-              style={{ fontSize: 'clamp(0.9rem, 1.05vw, 1rem)' }}
+            <span
+              className="relative z-10 flex-shrink-0 bg-white grid place-items-center overflow-hidden transition-colors duration-300 group-hover/btn:text-accent text-primary"
+              style={{
+                width: 'clamp(18px, 1.35vw, 24px)',
+                height: 'clamp(18px, 1.35vw, 24px)',
+                borderRadius: 999,
+              }}
             >
-              Learn more
-            </button>
-          </div>
+              <svg
+                viewBox="0 0 14 15"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="transition-transform duration-300 ease-in-out group-hover/btn:translate-x-[150%] group-hover/btn:-translate-y-[150%]"
+                style={{
+                  width: 'clamp(10px, 0.9vw, 12px)',
+                  height: 'clamp(10px, 0.9vw, 12px)',
+                }}
+              >
+                <path
+                  d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z"
+                  fill="currentColor"
+                />
+              </svg>
+
+              <svg
+                viewBox="0 0 14 15"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="absolute transition-transform duration-300 ease-in-out translate-x-[-150%] translate-y-[150%] group-hover/btn:translate-x-0 group-hover/btn:translate-y-0 delay-75"
+                style={{
+                  width: 'clamp(10px, 0.9vw, 12px)',
+                  height: 'clamp(10px, 0.9vw, 12px)',
+                }}
+              >
+                <path
+                  d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z"
+                  fill="currentColor"
+                />
+              </svg>
+            </span>
+
+            <span className="relative z-10">Explore More</span>
+          </button>
+
+          <span
+            className="font-serif font-black select-none pointer-events-none"
+            style={{
+              position: 'absolute',
+              right: 'clamp(10px, 1.2vw, 18px)',
+              bottom: 'clamp(-10px, -1.2vw, -14px)',
+              fontSize: 'clamp(44px, 4.6vw, 74px)',
+              color: 'rgba(255,255,255,0.055)',
+            }}
+          >
+            {number.replace('#', '')}
+          </span>
         </div>
       </div>
     </motion.div>
@@ -116,78 +202,65 @@ const ServiceCard: React.FC<AnimatedServiceCardProps> = ({
 };
 
 const Services: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  // Sticky wrapper height tuning
-  const [wrapperHeightPx, setWrapperHeightPx] = useState<number | null>(null);
-  const [navOffsetPx, setNavOffsetPx] = useState(110);
-
+  const containerRef = useRef<HTMLDivElement>(null);
   const [selectedService, setSelectedService] = useState<number | null>(null);
 
-  // Scroll progress
+  const [wrapperHeightPx, setWrapperHeightPx] = useState<number>(0);
+  const [navOffsetPx, setNavOffsetPx] = useState<number>(110);
+
+  useEffect(() => {
+    const calc = () => {
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+
+      // ✅ Added tail scroll on desktop so next section doesn't appear abruptly
+      let screens = 5.2;
+      if (vw >= 768) screens = 4.8;
+      if (vw >= 1024) screens = 4.4; // was 3.8
+      if (vw >= 1366) screens = 4.9; // was 4.2
+      if (vh < 720) screens += 0.5;
+
+      setWrapperHeightPx(Math.round(vh * screens));
+      setNavOffsetPx(vw >= 768 ? 120 : 104);
+    };
+
+    calc();
+    window.addEventListener('resize', calc);
+    window.addEventListener('orientationchange', calc);
+    return () => {
+      window.removeEventListener('resize', calc);
+      window.removeEventListener('orientationchange', calc);
+    };
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end'],
   });
 
-  // Smooth progress
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 24,
-    mass: 0.9,
+    stiffness: 65,
+    damping: 22,
+    mass: 0.5,
   });
 
-  // Title animation
-  const titleOpacity = useTransform(smoothProgress, [0, 0.08], [0, 1]);
-  const titleY = useTransform(smoothProgress, [0, 0.08], [12, 0]);
+  // Titles
+  const bigTitleOpacity = useTransform(smoothProgress, [0, 0.12], [0, 0.07]);
+  const titleOpacity = useTransform(smoothProgress, [0, 0.12], [0, 1]);
+  const titleY = useTransform(smoothProgress, [0, 0.12], [10, 0]);
 
-  const titleMobileOpacity = useTransform(smoothProgress, [0, 0.1], [0, 1]);
-  const titleMobileY = useTransform(smoothProgress, [0, 0.1], [10, 0]);
+  // Mobile title
+  const titleMobileOpacity = useTransform(smoothProgress, [0, 0.12], [0, 1]);
+  const titleMobileY = useTransform(smoothProgress, [0, 0.12], [14, 0]);
 
-  // Big title overlay (desktop)
-  const bigTitleOpacity = useTransform(smoothProgress, [0.02, 0.12], [0, 0.12]);
+  // Mobile card ranges
+  const mCard1Range: [number, number] = [0.12, 0.40];
+  const mCard2Range: [number, number] = [0.42, 0.70];
+  const mCard3Range: [number, number] = [0.72, 1.0];
 
-  // Cards progress ranges
-  const card1Range: [number, number] = [0.12, 0.28];
-  const card2Range: [number, number] = [0.32, 0.48];
-  const card3Range: [number, number] = [0.52, 0.68];
-
-  const mCard1Range = useMemo(() => card1Range, []);
-  const mCard2Range = useMemo(() => card2Range, []);
-  const mCard3Range = useMemo(() => card3Range, []);
-
-  // Slide-in from sides (desktop)
-  const mCard1X = useTransform(smoothProgress, mCard1Range, ['-105vw', '0vw']);
+  const mCard1X = useTransform(smoothProgress, mCard1Range, ['105vw', '0vw']);
   const mCard2X = useTransform(smoothProgress, mCard2Range, ['105vw', '0vw']);
-  const mCard3X = useTransform(smoothProgress, mCard3Range, ['-105vw', '0vw']);
-
-  // Cards content
-  const serviceCards: ServiceCardProps[] = useMemo(
-    () => [
-      {
-        number: '01',
-        category: 'Management',
-        title: 'Property Management & Maintenance',
-        description:
-          'We oversee and care for your property with weekly inspections, preventive maintenance, vendor coordination, and full-service support.',
-      },
-      {
-        number: '02',
-        category: 'Cleaning',
-        title: 'Cleaning Services',
-        description:
-          'Professional cleaning for residential and commercial spaces, including specialized services that elevate your property’s standards.',
-      },
-      {
-        number: '03',
-        category: 'Concierge',
-        title: 'Concierge Services',
-        description:
-          'We coordinate guest experiences and on-demand services so owners and guests enjoy a seamless, premium stay.',
-      },
-    ],
-    []
-  );
+  const mCard3X = useTransform(smoothProgress, mCard3Range, ['105vw', '0vw']);
 
   const serviceData = useMemo(
     () => [
@@ -231,47 +304,6 @@ const Services: React.FC = () => {
     []
   );
 
-  // Dynamic wrapper height (keeps sticky area stable across desktop sizes)
-  useEffect(() => {
-    const computeWrapperHeight = () => {
-      setWrapperHeightPx(null);
-    };
-    computeWrapperHeight();
-    window.addEventListener('resize', computeWrapperHeight);
-    return () => window.removeEventListener('resize', computeWrapperHeight);
-  }, []);
-
-  // Compute navbar offset for modal top padding (avoids overlap)
-  useEffect(() => {
-    const computeNavOffset = () => {
-      const nav = document.querySelector('nav');
-      if (!nav) return;
-      const rect = nav.getBoundingClientRect();
-      setNavOffsetPx(Math.round(rect.bottom + 14));
-    };
-
-    computeNavOffset();
-    window.addEventListener('resize', computeNavOffset);
-    window.addEventListener('load', computeNavOffset);
-
-    let ro: ResizeObserver | null = null;
-    if ('ResizeObserver' in window) {
-      const nav = document.querySelector('nav');
-      if (nav) {
-        ro = new ResizeObserver(() => computeNavOffset());
-        try {
-          ro.observe(nav);
-        } catch {}
-      }
-    }
-
-    return () => {
-      window.removeEventListener('resize', computeNavOffset);
-      window.removeEventListener('load', computeNavOffset);
-      if (ro) ro.disconnect();
-    };
-  }, []);
-
   const closeModal = () => setSelectedService(null);
 
   return (
@@ -308,78 +340,110 @@ const Services: React.FC = () => {
 
               {/* Mobile Title */}
               <div className="md:hidden mb-10">
-                <motion.div
-                  style={{ opacity: titleMobileOpacity, y: titleMobileY }}
-                  className="text-center"
-                >
-                  <h2 className="text-3xl font-extrabold text-primary uppercase tracking-tight">
-                    Our Services
+                <motion.div style={{ opacity: titleMobileOpacity, y: titleMobileY }} className="text-center">
+                  <h2 className="text-4xl font-bold text-primary tracking-tight uppercase mb-4">
+                    OUR SERVICES
                   </h2>
-                  <div className="w-14 h-1 bg-accent rounded-full mt-4 mx-auto" />
+                  <div className="w-16 h-1 bg-accent mx-auto rounded-full" />
                 </motion.div>
               </div>
 
-              {/* Cards */}
-              <div className="relative flex-1 flex items-center">
-                {/* Desktop grid */}
-                <div className="hidden md:grid w-full grid-cols-12 gap-7 lg:gap-10 items-stretch">
-                  <div className="col-span-4">
-                    <ServiceCard
-                      {...serviceCards[0]}
-                      progress={smoothProgress}
-                      range={mCard1Range}
-                      onExplore={() => setSelectedService(1)}
-                      style={{ x: mCard1X }}
-                    />
-                  </div>
+              {/* Desktop Grid */}
+              <div className="hidden md:grid grid-cols-3 gap-10 lg:gap-12 items-stretch">
+                <ServiceCard
+                  number="#01"
+                  category="Estate Management"
+                  title="Property Management & Maintenance"
+                  description="From preventive technical support to seamless vendor coordination, we handle every operational detail. Our dedicated team acts as your local eyes and ears."
+                  direction="left"
+                  progress={smoothProgress}
+                  range={[0.10, 0.30]}
+                  onExplore={() => setSelectedService(1)}
+                />
+                <ServiceCard
+                  number="#02"
+                  category="Hygiene Standards"
+                  title="Cleaning Services"
+                  description="Professional cleaning services for homes and commercial spaces, including routine, deep, and specialized cleaning, delivering spotless results and consistently high standards."
+                  direction="up"
+                  progress={smoothProgress}
+                  range={[0.30, 0.55]}
+                  onExplore={() => setSelectedService(2)}
+                />
+                <ServiceCard
+                  number="#03"
+                  category="Guest Hospitality"
+                  title="Concierge Services"
+                  description="Personalized concierge services for owners and guests, including guest assistance, reservations, and lifestyle support, creating seamless experiences and complete peace of mind."
+                  direction="right"
+                  progress={smoothProgress}
+                  range={[0.55, 0.80]}
+                  onExplore={() => setSelectedService(3)}
+                />
+              </div>
 
-                  <div className="col-span-4">
-                    <ServiceCard
-                      {...serviceCards[1]}
-                      progress={smoothProgress}
-                      range={mCard2Range}
-                      onExplore={() => setSelectedService(2)}
-                      style={{ x: mCard2X }}
-                    />
-                  </div>
+              {/* Mobile narrative */}
+              <div className="md:hidden relative flex-1 flex items-center justify-center">
+                <div className="relative w-full" style={{ height: 'clamp(320px, 44vh, 460px)' }}>
+                  <ServiceCard
+                    number="#01"
+                    category="Estate Management"
+                    title="Property Management & Maintenance"
+                    description="From preventive technical support to seamless vendor coordination, we handle every operational detail. Our dedicated team acts as your local eyes and ears."
+                    direction="up"
+                    progress={smoothProgress}
+                    range={mCard1Range}
+                    onExplore={() => setSelectedService(1)}
+                    style={{
+                      x: mCard1X,
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 10,
+                    }}
+                  />
 
-                  <div className="col-span-4">
-                    <ServiceCard
-                      {...serviceCards[2]}
-                      progress={smoothProgress}
-                      range={mCard3Range}
-                      onExplore={() => setSelectedService(3)}
-                      style={{ x: mCard3X }}
-                    />
-                  </div>
-                </div>
+                  <ServiceCard
+                    number="#02"
+                    category="Hygiene Standards"
+                    title="Cleaning Services"
+                    description="Professional cleaning services for homes and commercial spaces, including routine, deep, and specialized cleaning, delivering spotless results and consistently high standards."
+                    direction="up"
+                    progress={smoothProgress}
+                    range={mCard2Range}
+                    onExplore={() => setSelectedService(2)}
+                    style={{
+                      x: mCard2X,
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 20,
+                    }}
+                  />
 
-                {/* Mobile stacked */}
-                <div className="md:hidden w-full space-y-7">
-                  <div className="w-full">
-                    <ServiceCard
-                      {...serviceCards[0]}
-                      progress={smoothProgress}
-                      range={[0.1, 0.22]}
-                      onExplore={() => setSelectedService(1)}
-                    />
-                  </div>
-                  <div className="w-full">
-                    <ServiceCard
-                      {...serviceCards[1]}
-                      progress={smoothProgress}
-                      range={[0.25, 0.42]}
-                      onExplore={() => setSelectedService(2)}
-                    />
-                  </div>
-                  <div className="w-full">
-                    <ServiceCard
-                      {...serviceCards[2]}
-                      progress={smoothProgress}
-                      range={[0.45, 0.62]}
-                      onExplore={() => setSelectedService(3)}
-                    />
-                  </div>
+                  <ServiceCard
+                    number="#03"
+                    category="Guest Hospitality"
+                    title="Concierge Services"
+                    description="Personalized concierge services for owners and guests, including guest assistance, reservations, and lifestyle support, creating seamless experiences and complete peace of mind."
+                    direction="up"
+                    progress={smoothProgress}
+                    range={mCard3Range}
+                    onExplore={() => setSelectedService(3)}
+                    style={{
+                      x: mCard3X,
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 30,
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -415,7 +479,7 @@ const Services: React.FC = () => {
             >
               <div onClick={(e) => e.stopPropagation()} className="w-full flex justify-center">
                 <div
-                  className="w-full bg-white rounded-[2.25rem] shadow-2xl overflow-hidden"
+                  className="w-full rounded-[2.25rem] shadow-2xl overflow-hidden bg-white/70 backdrop-blur-xl border border-white/40"
                   style={{
                     maxWidth: 'min(720px, 92vw)',
                     maxHeight: `calc(100vh - ${navOffsetPx}px - 22px)`,
@@ -445,94 +509,110 @@ const Services: React.FC = () => {
                       {serviceData.find((s) => s.id === selectedService)?.title}
                     </h2>
 
-                    <div className="space-y-4">
-                      {serviceData
-                        .find((s) => s.id === selectedService)
-                        ?.content.map((item, idx) => {
-                          // ✅ ONLY CHANGE: Cleaning Services -> nest + highlight Specialized Cleaning Services
-                          if (selectedService === 2 && typeof item === 'string') {
-                            const label = item.trim().toLowerCase();
-                            const isGroupTitle =
-                              label === 'specialized cleaning services:' ||
-                              label === 'specialized cleaning services';
+                    {selectedService === 2 ? (
+                      <div className="space-y-6">
+                        <div className="space-y-5">
+                          {[
+                            'Residential Cleaning (Checkout Clean, Move-Out Clean, Deep Clean)',
+                            'Commercial Cleaning (Restaurants, Offices, Common Areas)',
+                          ].map((item, idx) => (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{
+                                delay: 0.06 + idx * 0.04,
+                                duration: 0.22,
+                                ease: 'easeOut',
+                              }}
+                              className="flex items-start gap-4"
+                            >
+                              <div className="mt-1 flex-shrink-0">
+                                <CheckCircle2 className="w-5 h-5 text-accent" />
+                              </div>
+                              <p
+                                className="text-dark/70 font-medium"
+                                style={{
+                                  fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                  lineHeight: 1.6,
+                                }}
+                              >
+                                {item}
+                              </p>
+                            </motion.div>
+                          ))}
+                        </div>
 
-                            if (isGroupTitle) {
-                              const items =
-                                serviceData.find((s) => s.id === selectedService)?.content ?? [];
-                              const subItems = items.slice(idx + 1, idx + 4);
+                        <motion.div
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{
+                            delay: 0.16,
+                            duration: 0.22,
+                            ease: 'easeOut',
+                          }}
+                          className="rounded-[1.25rem] border border-accent/20 bg-accent/10"
+                          style={{ padding: 'clamp(18px, 1.8vw, 24px)' }}
+                        >
+                          <div className="flex items-start justify-between gap-4 mb-5">
+                            <div className="flex items-center gap-3">
+                              <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-[1px]" />
+                              <h3
+                                className="text-primary"
+                                style={{
+                                  fontSize: 'clamp(1rem, 1.05vw, 1.1rem)',
+                                  fontWeight: 700,
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                Specialized Cleaning Services
+                              </h3>
+                            </div>
 
-                              return (
-                                <motion.div
-                                  initial={{ opacity: 0, x: -8 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{
-                                    delay: 0.06 + idx * 0.04,
-                                    duration: 0.22,
-                                    ease: 'easeOut',
+                            <span className="px-4 py-1.5 rounded-full bg-accent/80 text-white font-black uppercase tracking-[0.18em] text-[10px] whitespace-nowrap">
+                              HIGH-IMPACT
+                            </span>
+                          </div>
+
+                          <div className="space-y-4 pl-1">
+                            {[
+                              'Window & Gutter Cleaning',
+                              'Carpet & Upholstery Steam Cleaning',
+                              'Exterior Pressure Washing',
+                            ].map((item, idx) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, x: -8 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{
+                                  delay: 0.2 + idx * 0.04,
+                                  duration: 0.22,
+                                  ease: 'easeOut',
+                                }}
+                                className="flex items-start gap-4"
+                              >
+                                <div className="mt-1 flex-shrink-0">
+                                  <CheckCircle2 className="w-5 h-5 text-accent" />
+                                </div>
+                                <p
+                                  className="text-dark/70 font-medium"
+                                  style={{
+                                    fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
+                                    lineHeight: 1.6,
                                   }}
-                                  key={idx}
-                                  className="rounded-2xl bg-accent/10 border border-accent/20 p-5"
                                 >
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div className="flex items-start gap-3">
-                                      <div className="mt-0.5 flex-shrink-0">
-                                        <Sparkles className="w-5 h-5 text-accent" />
-                                      </div>
-                                      <p
-                                        className="text-dark font-bold"
-                                        style={{
-                                          fontSize: 'clamp(0.95rem, 1.05vw, 1.02rem)',
-                                          lineHeight: 1.4,
-                                        }}
-                                      >
-                                        Specialized Cleaning Services
-                                      </p>
-                                    </div>
-
-                                    <span className="inline-flex items-center rounded-full bg-accent text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em]">
-                                      HIGH-IMPACT
-                                    </span>
-                                  </div>
-
-                                  <div className="mt-4 space-y-3 pl-8">
-                                    {subItems.map((sub, j) => (
-                                      <div key={j} className="flex items-start gap-4">
-                                        <div className="mt-1 flex-shrink-0">
-                                          <CheckCircle2 className="w-4 h-4 text-accent" />
-                                        </div>
-                                        <p
-                                          className="text-dark/70 font-medium"
-                                          style={{
-                                            fontSize: 'clamp(0.92rem, 1.05vw, 1.02rem)',
-                                            lineHeight: 1.6,
-                                          }}
-                                        >
-                                          {sub}
-                                        </p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </motion.div>
-                              );
-                            }
-
-                            // Skip the 3 sub-items after the group title (they are rendered inside the group)
-                            const items =
-                              serviceData.find((s) => s.id === selectedService)?.content ?? [];
-                            const prev = items[idx - 1];
-                            const prev2 = items[idx - 2];
-                            const prev3 = items[idx - 3];
-
-                            const isTitle = (v: any) =>
-                              typeof v === 'string' &&
-                              (v.trim().toLowerCase() === 'specialized cleaning services:' ||
-                                v.trim().toLowerCase() === 'specialized cleaning services');
-
-                            if (isTitle(prev) || isTitle(prev2) || isTitle(prev3)) return null;
-                          }
-
-                          // default item render (UNCHANGED)
-                          return (
+                                  {item}
+                                </p>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {serviceData
+                          .find((s) => s.id === selectedService)
+                          ?.content.map((item, idx) => (
                             <motion.div
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -557,9 +637,9 @@ const Services: React.FC = () => {
                                 {item}
                               </p>
                             </motion.div>
-                          );
-                        })}
-                    </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
